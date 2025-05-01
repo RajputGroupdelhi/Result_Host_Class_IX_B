@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Result Portal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .box {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Student Result Portal</h2>
+    <form id="resultForm">
+      <input type="text" id="rollInput" placeholder="Enter Roll Number" required />
+      <button type="submit">Check Result</button>
+    </form>
+    <div id="Result"></div>
+  </div>
+
+  <script>
+    const sheetId = '1Je2afHOVHfPqKtPqi1FY6H5Oka8fNmqw';
+    const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+    document.getElementById("resultForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const roll = document.getElementById("rollInput").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      fetch(sheetURL)
+        .then(res => res.text())
+        .then(text => {
+          const json = JSON.parse(text.substr(47).slice(0, -2));
+          const rows = json.table.rows;
+
+          let found = false;
+          for (let row of rows) {
+            const rollNum = row.c[0]?.v;
+            const name = row.c[1]?.v;
+            const status = row.c[2]?.v;
+            const grade = row.c[3]?.v;
+
+            if (rollNum && rollNum.toString() === roll) {
+              resultDiv.innerHTML = `
+                <h3>Name: ${name}</h3>
+                <p>Result: <strong>${status}</strong></p>
+                <p>Grade: <strong>${grade}</strong></p>
+              `;
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            resultDiv.innerHTML = "<p>No result found for this Roll Number.</p>";
+          }
+        })
+        .catch(err => {
+          resultDiv.innerHTML = "<p>Error fetching data.</p>";
+          console.error(err);
+        });
+    });
+  </script>
+</body>
+</html>
