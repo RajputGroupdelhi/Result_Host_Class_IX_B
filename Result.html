@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Result</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #e3f2fd; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .result-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
+    h2 { margin-bottom: 20px; color: #007bff; }
+    p { font-size: 18px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="result-box">
+    <h2>Student Result</h2>
+    <div id="output">Loading...</div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const roll = params.get("roll");
+    const output = document.getElementById("output");
+
+    if (!roll) {
+      output.innerText = "No roll number provided!";
+    } else {
+      const url = "https://docs.google.com/spreadsheets/d/1Je2afHOVHfPqKtPqi1FY6H5Oka8fNmqw/gviz/tq?tqx=out:json";
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const data = JSON.parse(text.substr(47).slice(0, -2));
+          const rows = data.table.rows;
+          let found = false;
+
+          for (let row of rows) {
+            const r = row.c[0]?.v;
+            const name = row.c[1]?.v;
+            const result = row.c[2]?.v;
+            const grade = row.c[3]?.v;
+
+            if (r == roll) {
+              output.innerHTML = `
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Result:</strong> ${result}</p>
+                <p><strong>Grade:</strong> ${grade}</p>
+              `;
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) {
+            output.innerHTML = "<p>No result found.</p>";
+          }
+        })
+        .catch(err => {
+          output.innerHTML = "<p>Error loading data.</p>";
+          console.error(err);
+        });
+    }
+  </script>
+</body>
+</html>
